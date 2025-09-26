@@ -31,18 +31,22 @@ It includes modules for authentication, ticketing, notices, lost & found, and co
 ## 📦 Installation & Setup
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/nafinoor/dmt-backend.git
 cd dmt-backend
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 3. Setup Environment Variables
+
 Create a `.env` file in the root directory:
+
 ```env
 PORT=5000
 MONGO_URI=mongodb://127.0.0.1:27017/dmrsystem
@@ -51,15 +55,19 @@ EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_app_password
 FRONTEND_URL=http://localhost:3000
 ```
+
 ⚠️ **Do not commit `.env` to GitHub.** Instead, keep a `.env.example` file for reference.
 
 ### 4. Start the Server
+
 For development with auto-reload (requires nodemon):
+
 ```bash
 npm run dev
 ```
 
 For production:
+
 ```bash
 npm start
 ```
@@ -68,7 +76,7 @@ npm start
 
 ## 📂 Project Structure
 
-```
+```bash
 backend/
 │── config/             # Database connection
 │── controllers/        # Business logic for APIs
@@ -85,6 +93,7 @@ backend/
 ## 📡 API Endpoints
 
 ### Auth
+
 - `POST /api/auth/signup`
 - `POST /api/auth/login`
 - `GET /api/auth/profile`
@@ -94,24 +103,28 @@ backend/
 - `POST /api/auth/reset-password`
 
 ### Tickets
+
 - `POST /api/tickets` → Buy ticket
 - `GET /api/tickets` → Travel history
 - `GET /api/tickets/:id` → View ticket
 - `DELETE /api/tickets/:id` → Delete ticket
 
 ### Notices
+
 - `GET /api/notices` → View all notices (public)
 - `POST /api/notices` → Create notice (Admin)
 - `PUT /api/notices/:id` → Update notice (Admin)
 - `DELETE /api/notices/:id` → Delete notice (Admin)
 
 ### Lost & Found
+
 - `GET /api/lostfound` → View approved reports
 - `POST /api/lostfound` → Submit report (User)
 - `PUT /api/lostfound/:id/approve` → Approve (Admin)
 - `DELETE /api/lostfound/:id` → Delete (Admin)
 
 ### Complaints
+
 - `POST /api/complaints` → Submit complaint (User)
 - `GET /api/complaints/my` → User's complaints
 - `GET /api/complaints/all` → All complaints (Admin)
@@ -123,6 +136,7 @@ backend/
 ## 📧 Email Features
 
 Users receive emails for:
+
 - Ticket purchase confirmation
 - Password reset links
 - Complaint status updates (Noted/Solved)
