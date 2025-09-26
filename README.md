@@ -147,5 +147,4 @@ Admin uses Gmail App Passwords for SMTP
 
 ## 📝 License
 
-This project is for university project/demo purposes.  
-Feel free to fork and adapt as needed.
+This project is for a university project purpose.
