@@ -13,7 +13,10 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user"
     },
-    profilePhoto: { type: String, default: null }, // store filename or URL
+    profilePhoto: { type: String, default: null },
+    isVerified: { type: Boolean, default: false },
+    verificationToken: String,  // stores token
+    verificationExpires: Date,   // expiry for token
     resetToken: String,
     resetTokenExpire: Date
   },
