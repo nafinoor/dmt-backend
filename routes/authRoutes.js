@@ -33,6 +33,6 @@ router.post("/reset-password", resetPassword);
 // Protected routes
 router.get("/profile", protect, getProfile);
 router.put("/profile", protect, updateProfile);
-router.put("/profile/photo", protect, upload.single("photo"), updateProfilePhoto);
+router.put("/profile/photo", protect, upload.single("profilePhoto"), updateProfilePhoto);
 
 module.exports = router;
