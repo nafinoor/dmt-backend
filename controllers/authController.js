@@ -151,7 +151,7 @@ const forgotPassword = async (req, res) => {
     user.resetTokenExpire = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
 
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset_password.html?token=${resetToken}`;
     await sendEmail(user.email, "Password Reset", `<a href="${resetUrl}">Reset Password</a>`);
 
     res.json({ message: "Reset link sent to email" });
