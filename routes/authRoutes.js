@@ -2,6 +2,8 @@ const express = require("express");
 const multer = require("multer");
 const {
   signup,
+  verifyEmail,
+  resendVerification,
   login,
   forgotPassword,
   resetPassword,
@@ -23,6 +25,8 @@ const upload = multer({ storage });
 // Public routes
 router.post("/signup", signup);
 router.post("/login", login);
+router.get("/verify/:token", verifyEmail);
+router.post("/resend-verification", resendVerification);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 

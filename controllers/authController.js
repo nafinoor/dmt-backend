@@ -6,40 +6,108 @@ const sendEmail = require("../utils/sendEmail");
 const fs = require("fs");
 const path = require("path");
 
-// Signup
-const signup = async (req, res) => {
-  const { name, address, phone, email, nid, password, role } = req.body;
 
+// Signup with email verification
+const signup = async (req, res) => {
   try {
-    const exists = await User.findOne({ email });
-    if (exists) return res.status(400).json({ message: "User already exists" });
+    const { name, address, phone, email, nid, password, role } = req.body;
+
+    const userExists = await User.findOne({ email });
+    if (userExists) return res.status(400).json({ message: "User already exists" });
 
     const hashed = await bcrypt.hash(password, 10);
+
+    // Create verification token
+    const token = crypto.randomBytes(32).toString("hex");
+    const verificationUrl = `${req.protocol}://${req.get("host")}/api/auth/verify/${token}`;
 
     const user = await User.create({
       name,
       address,
-      phone,
       email,
-      nid,
       password: hashed,
+      phone,
+      nid,
       role: role || "user",
-      profilePhoto: null
+      profilePhoto: null,
+      isVerified: false,
+      verificationToken: token,
+      verificationExpires: Date.now() + 24 * 60 * 60 * 1000 // 24h expiry
     });
 
-    res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      profilePhoto: user.profilePhoto,
-      token: generateToken(user._id.toString())
-    });
+    // Send email
+    await sendEmail(
+      user.email,
+      "Verify Your Email - Dhaka Metro Rail",
+      `<p>Hello ${user.name},</p>
+       <p>Please verify your email by clicking below:</p>
+       <a href="${verificationUrl}">Verify Email</a>
+       <p>This link expires in 24 hours.</p>`
+    );
+
+    res.status(201).json({ message: "Signup successful. Please check your email to verify your account." });
   } catch (err) {
     console.error("Signup Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Email Verification
+const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const user = await User.findOne({
+      verificationToken: token,
+      verificationExpires: { $gt: Date.now() }
+    });
+
+    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationExpires = undefined;
+    await user.save();
+
+    // Redirect to frontend
+    res.redirect(`${process.env.FRONTEND_URL}/login?verified=1`);
+  } catch (err) {
+    console.error("Verify Email Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Resend Email
+const resendVerification = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.isVerified) return res.status(400).json({ message: "Already verified" });
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const verificationUrl = `${req.protocol}://${req.get("host")}/api/auth/verify/${token}`;
+
+    user.verificationToken = token;
+    user.verificationExpires = Date.now() + 24 * 60 * 60 * 1000;
+    await user.save();
+
+    await sendEmail(
+      user.email,
+      "Resend Verification - Dhaka Metro Rail",
+      `<p>Hello ${user.name},</p>
+       <p>Please verify your email by clicking below:</p>
+       <a href="${verificationUrl}">Verify Email</a>`
+    );
+
+    res.json({ message: "Verification email resent" });
+  } catch (err) {
+    console.error("Resend Verification Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 // Login
 const login = async (req, res) => {
@@ -51,6 +119,10 @@ const login = async (req, res) => {
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ message: "Invalid credentials" });
+
+    if (!user.isVerified) {
+      return res.status(403).json({ message: "Please verify your email before logging in." });
+    }
 
     res.json({
       _id: user._id,
@@ -156,7 +228,7 @@ const updateProfilePhoto = async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // ✅ Delete old photo if exists
+    // Delete old photo if exists
     if (user.profilePhoto) {
       try {
         // extract filename from stored URL (if full URL was stored)
@@ -174,7 +246,7 @@ const updateProfilePhoto = async (req, res) => {
       }
     }
 
-    // ✅ Build full URL for new photo
+    // Build full URL for new photo
     const photoUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
 
     // Save new photo URL to DB
@@ -193,6 +265,8 @@ const updateProfilePhoto = async (req, res) => {
 
 module.exports = {
   signup,
+  verifyEmail,
+  resendVerification,
   login,
   forgotPassword,
   resetPassword,
