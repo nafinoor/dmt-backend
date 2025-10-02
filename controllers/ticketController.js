@@ -77,6 +77,17 @@ const getTicketById = async (req, res) => {
   }
 };
 
+// Get latest ticket (Ticket View)
+const getlatestTicket = async (req, res) => {
+  try {
+    const ticket = await Ticket.findOne({ user: req.user._id }).sort({ createdAt: -1 });
+    if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+    res.json(ticket);
+  } catch (err) {
+  res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
 // Delete ticket (for Travel History UI)
 const deleteTicket = async (req, res) => {
   try {
@@ -92,5 +103,6 @@ module.exports = {
   createTicket,
   getTickets,
   getTicketById,
+  getlatestTicket,
   deleteTicket
 };
